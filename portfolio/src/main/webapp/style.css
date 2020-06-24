@@ -5,18 +5,22 @@
   width: 60%;
 }
 
-.header{
+.card{
   border-style: solid;
   border-width: 1px;
   border-radius: 5px;
   background-color: lightsteelblue;
 }
 
-.cv{
-  border-style: solid;
-  border-width: 1px;
-  border-radius: 5px;
-  background-color: lightsteelblue;
+.card *{
+  padding: 3px;
+}
+
+.sketch{
+  width:555px;
+  height: 575px;
+  margin: 0 auto;
+  display: block;
 }
 
 .imgwrapper {

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 
@@ -11,7 +10,7 @@
 
 <body>
   <div id="content">
-    <div class="header">
+    <div class="card" id="header">
       <h1 id="title">Domene's Portfolio</h1>
       <img id="titleimg" src="/images/me.jpeg" alt="Portfolio picture of Javier Domene"></img>
       <p>This is my portfolio.</p>
@@ -30,7 +29,7 @@
       </div>
     </div>
     </br>
-    <div class="cv">
+    <div class="card" id="cv">
       <h2 class="subtitle">My resume</h2>
       <h3 class="category">Work experience</h3>
       <p>
@@ -46,6 +45,24 @@
       <h3 class="category">Click here to get a random fun fact about me:</h3>
       <button onclick="getRandomFact()">Click Me!</button>
       <div id="greeting-container"></div>
+    </div>
+    </br>
+    <div class="card" id="entertainment">
+      <h2 class="subtitle">Entertainment</h2>
+      <div id="pi">
+        <h3 class="category">Counting digits of pi.</h3>
+        <p>Select how many digits of pi you wish to visualize, preferably no greater than 10. This quirky physical
+          phenomenon gets the answer by counting the amount of collisions of both blocks.</p>
+        <p>Inspired by youtube channels: The Coding Train, 3blue1brown</p>
+        <iframe class="sketch" src="https://editor.p5js.org/domenso/embed/7zfkCYKoj"></iframe>
+      </div>
+      <div id="physics">
+        <h3 class="category">A really bad physics engine.</h3>
+        <p>There's a lot of good physics engine floating around. That's why I decided to make a really bad one.
+          Initially all laws of physics on this engine are textbook formulas. But, when you click a checkbox, one of
+          those physical properties gets a bit of randomness, making it shitty.</p>
+        <iframe class="sketch" src="https://editor.p5js.org/domenso/embed/swweaeFLa"></iframe>
+      </div>
     </div>
   </div>
 </body>
