@@ -2,9 +2,10 @@ package com.google.sps.classes;
 
 public class Comment {
 
-    private final String comment, user;
+    private final String comment;
+    private final String user;
     private final long size;
-    private final int likes;
+    private int likes;
 
     public Comment(String comment, String user, long size, int likes) {
         this.comment = comment;
