@@ -12,35 +12,52 @@
   <script src="script.js"></script>
 </head>
 
-<body>
+<body onload="getComments()">
   <div id="content">
     <!--Top bar-->
     <ul class="nav nav-tabs">
-      <li class="active"><a data-toggle="pill" href="#header">Home</a></li>
-      <li><a data-toggle="pill" href="#cv">Resume</a></li>
-      <li><a data-toggle="pill" href="#entertainment">Entertainment</a></li>
+      <li class="active"><a id="home-pill" data-toggle="pill" href="#header">Home</a></li>
+      <li><a id="cv-pill" data-toggle="pill" href="#cv">Resume</a></li>
+      <li><a id="entertainment-pill" data-toggle="pill" href="#entertainment">Entertainment</a></li>
     </ul>
 
     <div class="tab-content">
       <!--Home page-->
-      <div class="card tab-pane fade in active" id="header">
-        <h1 id="title">Domene's Portfolio<br></h1>
-        <img id="titleimg" src="/images/me.jpeg" alt="Portfolio picture of Javier Domene"></img>
-        <p>This is my portfolio.</p>
-        <p>I am a student at Tec de Monterrey studying computer science.</p>
+      <div class="tab-pane fade in active" id="header">
+        <div class="card">
+          <h1 id="title">Domene's Portfolio<br></h1>
+          <img id="titleimg" src="/images/me.jpeg" alt="Portfolio picture of Javier Domene"></img>
+          <p>This is my portfolio.</p>
+          <p>I am a student at Tec de Monterrey studying computer science.</p>
 
-        <div class="imgwrapper">
-          <div class="imgcontainer">
-            <a href="https://www.github.com/Domene99" target="_blank"><img class="imglink"
-                src="/images/github.png"
-                alt="Github logo"></img></a>
-          </div>
+          <div class="imgwrapper">
+            <div class="imgcontainer">
+              <a href="https://www.github.com/Domene99" target="_blank"><img class="imglink" src="/images/github.png"
+                  alt="Github logo"></img></a>
+            </div>
 
-          <div class="imgcontainer">
-            <a href="https://www.linkedin.com/in/domenecs" target="_blank"><img class="imglink"
-                src="/images/linkedin.webp"
-                alt="Linkedin logo"></img></a>
+            <div class="imgcontainer">
+              <a href="https://www.linkedin.com/in/domenecs" target="_blank"><img class="imglink"
+                  src="/images/linkedin.webp" alt="Linkedin logo"></img></a>
+            </div>
           </div>
+        </div>
+
+        <!--Write a comment-->
+        <div class="card" id="comment-submit">
+          <h2 class="subtitle">Write me a comment!</h2>
+          <form action="/comment" method="pOST">
+            <div id="input-user">
+              <textarea name="user" id="user" rows="1" maxlength="15" placeholder="User" required></textarea>
+            </div>
+            <div id="input-comment">
+              <textarea name="comment" id="comment" rows="5" placeholder="Comment..." required></textarea>
+            </div>
+            <div id="btn-grid">
+              <button class="btn">Submit</button>
+              <button class="btn" type="reset">Reset</button>
+            </div>
+          </form>
         </div>
       </div>
 

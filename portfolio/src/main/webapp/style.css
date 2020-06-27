@@ -5,6 +5,14 @@
   width: 60%;
 }
 
+#user {
+  resize: none;
+}
+
+#comment {
+  resize: none;
+}
+
 .card{
   border-style: solid;
   border-width: 1px;

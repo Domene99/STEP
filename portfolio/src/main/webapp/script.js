@@ -26,3 +26,8 @@ function getRandomFact() {
   const greetingContainer = document.getElementById('greeting-container');
   greetingContainer.innerText = greeting;
 }
+
+async function getComments() {
+  const response = await fetch('/comment');
+  const json = await response.json();
+}
