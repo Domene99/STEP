@@ -40,7 +40,7 @@ const createCommentElement = commentPayload => {
   const commentText = commentPayload.comment;
   const id = String(commentPayload.id);
 
-  if (commentPayload.size <= COMMENT_LIMIT) {
+  if (commentPayload.size <= COMMENT_SIZE_LIMIT) {
     comment.innerHTML = commentText;
     commentWrapper.appendChild(comment);
   } else {
