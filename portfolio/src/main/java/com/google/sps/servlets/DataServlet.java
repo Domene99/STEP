@@ -16,21 +16,24 @@ package com.google.sps.servlets;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.sps.classes.Comment;
 import com.google.gson.Gson;
+import com.google.sps.classes.Comment;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import static java.lang.Math.toIntExact;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 @WebServlet("/comment")
 public class DataServlet extends HttpServlet {
@@ -48,10 +51,11 @@ public class DataServlet extends HttpServlet {
         String commentText = (String) entity.getProperty("comment");
         long commentSize = commentText.length();
         long time = (long) entity.getProperty("time");
+        Long likes = (Long) entity.getProperty("likes");
         
         long id = entity.getKey().getId();
 
-        Comment commentToSet = new Comment(commentText, user, commentSize, 0, time, id);
+        Comment commentToSet = new Comment(commentText, user, commentSize, likes.intValue(), time, id);
         commentsToSet.add(commentToSet);
     }
 
@@ -73,6 +77,8 @@ public class DataServlet extends HttpServlet {
     commentEntity.setProperty("user", user);
     commentEntity.setProperty("comment", commentText);
     commentEntity.setProperty("time", time);
+    commentEntity.setProperty("size", commentSize);
+    commentEntity.setProperty("likes", 0);
 
     dataStore.put(commentEntity);
 
@@ -84,6 +90,20 @@ public class DataServlet extends HttpServlet {
     response.getWriter().println(payload);
 
     response.sendRedirect("/index.html");
+  }
+
+  @Override
+  public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    Entity commentEntity;
+    Key key = KeyFactory.createKey("Comment", Long.parseLong(request.getHeader("id")));
+    
+    try {
+      commentEntity = dataStore.get(key);
+      commentEntity.setProperty("likes", ((Long)commentEntity.getProperty("likes")).intValue() + 1);
+      dataStore.put(commentEntity);
+    } catch (EntityNotFoundException e) {
+      System.out.println(e);
+    }
   }
 
   private String getParameter(HttpServletRequest request, String parameter, String defaultValue) {
