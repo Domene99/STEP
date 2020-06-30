@@ -42,7 +42,7 @@ public class DataServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json");
-    Query query = new Query("Comment").addSort("time", SortDirection.DESCENDING);
+    Query query = new Query("Comment").addSort("likes", SortDirection.DESCENDING);
 
     PreparedQuery comments = dataStore.prepare(query);
     List<Comment> commentsToSet = new ArrayList<>();
@@ -104,6 +104,16 @@ public class DataServlet extends HttpServlet {
     } catch (EntityNotFoundException e) {
       System.out.println(e);
     }
+  }
+
+  @Override
+  public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    response.setContentType("application/json;");
+
+    Key key = KeyFactory.createKey("Comment", Long.parseLong(request.getHeader("id")));
+
+    dataStore.delete(key);
+    response.sendRedirect("/index.html");
   }
 
   private String getParameter(HttpServletRequest request, String parameter, String defaultValue) {

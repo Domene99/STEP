@@ -32,6 +32,8 @@ const createCommentElement = commentPayload => {
   const comment = document.createElement("p");
   const like = document.createElement("i");
   const likeIcon = document.createElement("span");
+  const trash = document.createElement("i");
+  const trashIcon = document.createElement("span");
   const numOfLikes = document.createElement("p");
   const bottomWrapper = document.createElement("div");
 
@@ -61,7 +63,6 @@ const createCommentElement = commentPayload => {
     more.appendChild(moreIcon);
     more.id = id.concat("-btn");
     more.onclick = () => showFullText(id);
-    more.classList.add("btn-left");
 
     commentWrapper.appendChild(fullComment);
     commentWrapper.appendChild(comment);
@@ -71,6 +72,11 @@ const createCommentElement = commentPayload => {
   user.innerHTML = "@ ".concat(commentPayload.user);
 
   likeIcon.classList.add("glyphicon", "glyphicon-thumbs-up");
+  trashIcon.classList.add("glyphicon", "glyphicon-trash");
+
+  trash.appendChild(trashIcon);
+  trash.onclick = () => removeComment(id);
+  trash.classList.add("btn-right");
 
   const likes = parseInt(commentPayload.likes);
 
@@ -79,9 +85,10 @@ const createCommentElement = commentPayload => {
   numOfLikes.classList.add("btn-right");
 
   like.appendChild(likeIcon);
-  like.onclick = () => likeComment(id, likes);
+  like.onclick = () => likeComment(id);
   like.classList.add("btn-right");
 
+  bottomWrapper.appendChild(trash);
   bottomWrapper.appendChild(like);
   bottomWrapper.appendChild(numOfLikes);
 
@@ -109,7 +116,17 @@ function showFullText(id) {
   document.getElementById(moreBtnId).classList.add("hidden-element");
 }
 
-async function likeComment(id, likes) {
+async function removeComment(id) {
+  try {
+    const response = await fetch("/comment", { method: "DELETE", headers: { id } });
+
+    getComments();
+  } catch (e) {
+    console.log("ERROR: ".concat(e));
+  }
+}
+
+async function likeComment(id) {
   try {
     const response = await fetch("/comment", { method: 'PUT', headers: { id } });
 
