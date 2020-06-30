@@ -110,7 +110,6 @@ function showFullText(id) {
 }
 
 async function likeComment(id, likes) {
-  console.log(likes);
   try {
     const response = await fetch("/comment", { method: 'PUT', headers: { id } });
 
