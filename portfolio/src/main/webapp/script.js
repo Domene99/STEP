@@ -50,7 +50,7 @@ const createCommentElement = commentPayload => {
 
     moreIcon.classList.add("glyphicon", "glyphicon-triangle-bottom");
 
-    const shortenedComment = commentText.slice(0, COMMENT_LIMIT);
+    const shortenedComment = commentText.slice(0, COMMENT_SIZE_LIMIT);
 
     fullComment.innerHTML = commentText;
 
