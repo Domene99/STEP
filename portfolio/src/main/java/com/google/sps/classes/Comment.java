@@ -1,5 +1,7 @@
 package com.google.sps.classes;
 
+import com.google.appengine.api.datastore.Entity;
+
 public class Comment {
 
     private final String comment;
@@ -7,15 +9,38 @@ public class Comment {
     private final long size;
     private final long timestamp;
     private int likes;
-    private final long id;
+    private long id;
 
-    public Comment(String comment, String user, long size, int likes, long timestamp, long id) {
+    public Comment(String comment, String user, long size, int likes, long timestamp) {
         this.comment = comment;
         this.user = user;
         this.size = size;
         this.likes = likes;
         this.timestamp = timestamp;
-        this.id = id;
+    }
+
+    public Comment(Entity entity) {
+        user = (String) entity.getProperty("user");
+        comment = (String) entity.getProperty("comment");
+        size = comment.length();
+        timestamp = (long) entity.getProperty("time");
+        likes = ((Long) entity.getProperty("likes")).intValue();
+        
+        id = entity.getKey().getId();
+    }
+
+    public Entity toEntity() {
+        Entity entity = new Entity("Comment");
+        
+        entity.setProperty("user", user);
+        entity.setProperty("comment", comment);
+        entity.setProperty("time", timestamp);
+        entity.setProperty("size", size);
+        entity.setProperty("likes", likes);
+        
+        id = entity.getKey().getId();
+
+        return entity;
     }
 
     public String getComment() {

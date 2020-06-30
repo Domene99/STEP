@@ -13,11 +13,10 @@
 // limitations under the License.
 
 const COMMENT_SIZE_LIMIT = 100;
+const facts =
+  ["My ex podmate stole my go link", "I was the shortest person in my junior high", "I know 3 languages", "C++ is my favorite programming language"];
 
 function getRandomFact() {
-  const facts =
-    ["My ex podmate stole my go link", "I was the shortest person in my junior high", "I know 3 languages", "C++ is my favorite programming language"];
-
   const fact = facts[Math.floor(Math.random() * facts.length)];
 
   const factContainer = document.getElementById('fact-container');
@@ -25,81 +24,67 @@ function getRandomFact() {
 }
 
 const createCommentElement = commentPayload => {
-  console.log(commentPayload);
-  const commentElement = document.createElement("li");
-  const user = document.createElement("h4");
-  const commentWrapper = document.createElement("div");
-  const comment = document.createElement("p");
-  const like = document.createElement("i");
-  const likeIcon = document.createElement("span");
-  const trash = document.createElement("i");
-  const trashIcon = document.createElement("span");
-  const numOfLikes = document.createElement("p");
-  const bottomWrapper = document.createElement("div");
+  const template = document.getElementById("comment-template");
+  
+  const clonedComment = template.cloneNode(true);
+  clonedComment.classList.remove("hidden-element");
+
+  const commentChildren = clonedComment.childNodes;
+
+  const user = commentChildren[1];
+  const commentWrapper = commentChildren[3];
+  const bottomWrapper = commentChildren[5];
+
+  const commentWrapperChildren = commentWrapper.childNodes;
+  const bottomWrapperChildren = bottomWrapper.childNodes;
+
+  const comment = commentWrapperChildren[1];
+  const fullComment = commentWrapperChildren[3];
+
+  const more = bottomWrapperChildren[1];
+  const trash = bottomWrapperChildren[3];
+  const like = bottomWrapperChildren[5];
+  const numOfLikes = bottomWrapperChildren[7];
+
+  const moreIcon = more.childNodes[0];
+  const trashIcon = trash.childNodes[0];
+  const likeIcon = like.childNodes[0];
+  
 
   const commentText = commentPayload.comment;
   const id = String(commentPayload.id);
 
   if (commentPayload.size <= COMMENT_SIZE_LIMIT) {
     comment.innerHTML = commentText;
-    commentWrapper.appendChild(comment);
   } else {
-    const fullComment = document.createElement("p");
-    const more = document.createElement("i");
-    const moreIcon = document.createElement("span");
-
-    moreIcon.classList.add("glyphicon", "glyphicon-triangle-bottom");
-
     const shortenedComment = commentText.slice(0, COMMENT_SIZE_LIMIT);
+
+    more.classList.remove("hidden-element");
 
     fullComment.innerHTML = commentText;
 
     comment.innerHTML = shortenedComment.concat("...");
     comment.id = id.concat("-visible");
 
-    fullComment.classList.add("hidden-element");
     fullComment.id = id.concat("-hidden");
 
-    more.appendChild(moreIcon);
     more.id = id.concat("-btn");
     more.onclick = () => showFullText(id);
-
-    commentWrapper.appendChild(fullComment);
-    commentWrapper.appendChild(comment);
-    bottomWrapper.appendChild(more);
   }
 
   user.innerHTML = "@ ".concat(commentPayload.user);
 
-  likeIcon.classList.add("glyphicon", "glyphicon-thumbs-up");
-  trashIcon.classList.add("glyphicon", "glyphicon-trash");
-
-  trash.appendChild(trashIcon);
   trash.onclick = () => removeComment(id);
-  trash.classList.add("btn-right");
-
+  
   const likes = parseInt(commentPayload.likes);
 
   numOfLikes.innerHTML = "+".concat(String(likes));
   numOfLikes.id = id.concat("-likes");
-  numOfLikes.classList.add("btn-right");
 
-  like.appendChild(likeIcon);
   like.onclick = () => likeComment(id);
-  like.classList.add("btn-right");
 
-  bottomWrapper.appendChild(trash);
-  bottomWrapper.appendChild(like);
-  bottomWrapper.appendChild(numOfLikes);
-
-  commentElement.appendChild(user);
-  commentElement.appendChild(commentWrapper);
-  commentElement.appendChild(bottomWrapper);
-
-  commentElement.id = id;
-  commentElement.classList.add("list-group-item");
-
-  return commentElement;
+  clonedComment.id = id;
+  return clonedComment;
 }
 
 function showFullText(id) {
@@ -138,7 +123,8 @@ async function likeComment(id) {
 
 function createCommentsFromJson(payload) {
   const comments = document.getElementById("comments");
-  comments.innerHTML = "";
+  const template = document.getElementById("comment-template");
+  comments.children = template;
 
   for (const comment of payload) {
     const commentToInsert = createCommentElement(comment);

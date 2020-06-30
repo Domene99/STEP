@@ -38,25 +38,20 @@ import java.util.List;
 @WebServlet("/comment")
 public class DataServlet extends HttpServlet {
   private final DatastoreService dataStore = DatastoreServiceFactory.getDatastoreService();
+  private Comment comment;
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json");
     Query query = new Query("Comment").addSort("likes", SortDirection.DESCENDING);
+    query.addSort("time", SortDirection.DESCENDING);
 
     PreparedQuery comments = dataStore.prepare(query);
     List<Comment> commentsToSet = new ArrayList<>();
     for (Entity entity : comments.asIterable()) {
-        String user = (String) entity.getProperty("user");
-        String commentText = (String) entity.getProperty("comment");
-        long commentSize = commentText.length();
-        long time = (long) entity.getProperty("time");
-        Long likes = (Long) entity.getProperty("likes");
-        
-        long id = entity.getKey().getId();
+        comment = new Comment(entity);
 
-        Comment commentToSet = new Comment(commentText, user, commentSize, likes.intValue(), time, id);
-        commentsToSet.add(commentToSet);
+        commentsToSet.add(comment);
     }
 
     Gson gson = new Gson();
@@ -73,18 +68,9 @@ public class DataServlet extends HttpServlet {
     long commentSize = commentText.length();
     long time = System.currentTimeMillis();
 
-    Entity commentEntity = new Entity("Comment");
-    commentEntity.setProperty("user", user);
-    commentEntity.setProperty("comment", commentText);
-    commentEntity.setProperty("time", time);
-    commentEntity.setProperty("size", commentSize);
-    commentEntity.setProperty("likes", 0);
+    comment = new Comment(commentText, user, commentSize, 0, time);
 
-    dataStore.put(commentEntity);
-
-    long id = commentEntity.getKey().getId();
-
-    Comment comment = new Comment(commentText, user, commentSize, 0, time, id);
+    dataStore.put(comment.toEntity());
 
     String payload = new Gson().toJson(comment);
     response.getWriter().println(payload);
@@ -99,7 +85,7 @@ public class DataServlet extends HttpServlet {
     
     try {
       commentEntity = dataStore.get(key);
-      commentEntity.setProperty("likes", ((Long)commentEntity.getProperty("likes")).intValue() + 1);
+      commentEntity.setProperty("likes", (Long)commentEntity.getProperty("likes")+ 1L);
       dataStore.put(commentEntity);
     } catch (EntityNotFoundException e) {
       System.out.println(e);
@@ -110,9 +96,13 @@ public class DataServlet extends HttpServlet {
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json;");
 
-    Key key = KeyFactory.createKey("Comment", Long.parseLong(request.getHeader("id")));
+    try {
+      Key key = KeyFactory.createKey("Comment", Long.parseLong(request.getHeader("id")));
+      dataStore.delete(key);
+    } catch (Exception e) {
+      System.out.println(e);
+    }
 
-    dataStore.delete(key);
     response.sendRedirect("/index.html");
   }
 
