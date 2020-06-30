@@ -21,6 +21,10 @@
   background-color: lightsteelblue;
 }
 
+.hidden-element {
+  display: none;
+}
+
 .card *{
   padding: 3px;
 }
@@ -57,7 +61,7 @@
   width: 650px;
 }
 
-#greeting-container {
+#fact-container {
   margin-top: 20px;
 }
 
@@ -69,6 +73,18 @@
   text-align: center;
 }
 
+#comments div {
+  display: inline;
+}
+
+.btn-right {
+  float: right;
+}
+
 p {
   text-align: center;
+}
+
+i {
+  cursor: pointer;
 }

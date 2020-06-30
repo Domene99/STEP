@@ -46,7 +46,7 @@
         <!--Write a comment-->
         <div class="card" id="comment-submit">
           <h2 class="subtitle">Write me a comment!</h2>
-          <form action="/comment" method="pOST">
+          <form action="/comment" method="POST">
             <div id="input-user">
               <textarea name="user" id="user" rows="1" maxlength="15" placeholder="User" required></textarea>
             </div>
@@ -59,6 +59,13 @@
             </div>
           </form>
         </div>
+
+        <!--Comment section-->
+        <div class="card" id="comment-section">
+          <h2 class="subtitle">Comments</h2>
+          <ul id="comments" class=""></ul>
+        </div>
+
       </div>
 
       <!--Resume-->
@@ -104,7 +111,7 @@
         <h2 class="subtitle">Entertainment<br></h2>
         <h3 class="category">Click here to get a random fun fact about me:</h3>
         <button onclick="getRandomFact()">Click Me!</button>
-        <div id="greeting-container"></div>
+        <div id="fact-container"></div>
 
         <div id="pi">
           <h3 class="category">Counting digits of pi.</h3>
