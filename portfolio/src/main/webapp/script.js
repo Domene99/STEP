@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const COMMENT_LIMIT = 100;
+const COMMENT_SIZE_LIMIT = 100;
 
 function getRandomFact() {
   const facts =
