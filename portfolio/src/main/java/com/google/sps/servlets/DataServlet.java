@@ -79,20 +79,6 @@ public class DataServlet extends HttpServlet {
   }
 
   @Override
-  public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    Entity commentEntity;
-    Key key = KeyFactory.createKey("Comment", Long.parseLong(request.getHeader("id")));
-    
-    try {
-      commentEntity = dataStore.get(key);
-      commentEntity.setProperty("likes", (Long)commentEntity.getProperty("likes")+ 1L);
-      dataStore.put(commentEntity);
-    } catch (EntityNotFoundException e) {
-      System.out.println(e);
-    }
-  }
-
-  @Override
   public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json;");
 
