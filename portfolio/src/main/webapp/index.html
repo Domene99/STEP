@@ -9,16 +9,19 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCKLotBSFmHxZvmKPqaOLzhkoH4cUmjujM"></script>
   <script src="script.js"></script>
+  <script src="/api-script/script.js"></script>
 </head>
 
-<body onload="getComments()">
+<body onload="getComments(); loadMap()">
   <div id="content">
     <!--Top bar-->
     <ul class="nav nav-tabs">
       <li class="active"><a id="home-pill" data-toggle="pill" href="#header">Home</a></li>
       <li><a id="cv-pill" data-toggle="pill" href="#cv">Resume</a></li>
       <li><a id="entertainment-pill" data-toggle="pill" href="#entertainment">Entertainment</a></li>
+      <li><a id="api-pill" data-toggle="pill" href="#api">Api's</a></li>
     </ul>
 
     <div class="tab-content">
@@ -149,6 +152,12 @@
             funcionality is a bit iffy</p>
           <iframe class="sketch" src="https://editor.p5js.org/domenso/embed/swweaeFLa"></iframe>
         </div>
+      </div>
+
+      <div class="tab-pane fade" id="api">
+          <div id="map"></div>
+        </div>
+        <div id="chart"></div>
       </div>
     </div>
   </div>

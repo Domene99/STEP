@@ -122,7 +122,6 @@ async function likeComment(id) {
 }
 
 function createCommentsFromJson(payload) {
-  console.log(payload);
   const comments = document.getElementById("comments");
   const template = document.getElementById("comment-template");
   
