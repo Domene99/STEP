@@ -113,7 +113,7 @@ async function removeComment(id) {
 
 async function likeComment(id) {
   try {
-    const response = await fetch("/comment", { method: 'PUT', headers: { id } });
+    const response = await fetch("/comment/like", { method: 'POST', headers: { id } });
 
     getComments();
   } catch (e) {
@@ -122,9 +122,12 @@ async function likeComment(id) {
 }
 
 function createCommentsFromJson(payload) {
+  console.log(payload);
   const comments = document.getElementById("comments");
   const template = document.getElementById("comment-template");
-  comments.children = template;
+  
+  comments.innerHTML = "";
+  comments.appendChild(template);
 
   for (const comment of payload) {
     const commentToInsert = createCommentElement(comment);
