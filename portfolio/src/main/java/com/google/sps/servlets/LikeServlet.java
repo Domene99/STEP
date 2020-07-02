@@ -29,11 +29,12 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet("/comment/like")
 public class LikeServlet extends HttpServlet {
   private final DatastoreService dataStore = DatastoreServiceFactory.getDatastoreService();
+  private final String entityName = "Comment";
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
     Entity commentEntity;
-    Key key = KeyFactory.createKey("Comment", Long.parseLong(request.getHeader("id")));
+    Key key = KeyFactory.createKey(entityName, Long.parseLong(request.getHeader("id")));
     
     try {
       commentEntity = dataStore.get(key);
