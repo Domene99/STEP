@@ -44,7 +44,7 @@ public class DataServlet extends HttpServlet {
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json");
     Query query = new Query("Comment").addSort("likes", SortDirection.DESCENDING);
-    query.addSort("time", SortDirection.DESCENDING);
+    //query.addSort("time", SortDirection.DESCENDING);
 
     PreparedQuery comments = dataStore.prepare(query);
     List<Comment> commentsToSet = new ArrayList<>();
