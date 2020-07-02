@@ -38,13 +38,13 @@ import java.util.List;
 @WebServlet("/comment")
 public class DataServlet extends HttpServlet {
   private final DatastoreService dataStore = DatastoreServiceFactory.getDatastoreService();
+  private final String entityName = "Comment";
   private Comment comment;
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json");
-    Query query = new Query("Comment").addSort("likes", SortDirection.DESCENDING);
-    //query.addSort("time", SortDirection.DESCENDING);
+    Query query = new Query(entityName).addSort("likes", SortDirection.DESCENDING);
 
     PreparedQuery comments = dataStore.prepare(query);
     List<Comment> commentsToSet = new ArrayList<>();
@@ -83,7 +83,7 @@ public class DataServlet extends HttpServlet {
     response.setContentType("application/json;");
 
     try {
-      Key key = KeyFactory.createKey("Comment", Long.parseLong(request.getHeader("id")));
+      Key key = KeyFactory.createKey(entityName, Long.parseLong(request.getHeader("id")));
       dataStore.delete(key);
     } catch (Exception e) {
       System.out.println(e);
