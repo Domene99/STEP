@@ -50,7 +50,6 @@ public class LandingDataServlet extends HttpServlet {
       
             landingSites.add(new LandingSite(lat, lng, missionNum, description));
           }
-          scanner.close();
 
           payload = new Gson().toJson(landingSites);
     }catch (Exception e) {

@@ -63,8 +63,7 @@ function getNormalizedCoord(coord, zoom) {
 
   // tile range in one direction range is dependent on zoom level
   // 0 = 1 tile, 1 = 2 tiles, 2 = 4 tiles, 3 = 8 tiles, etc
-  // 1 << zoom => 2^zoom
-  var tileRange = 1 << zoom;
+  var tileRange = Math.pow(2, zoom);
 
   // don't repeat across y-axis (vertically)
   if (y < 0 || y >= tileRange) {
