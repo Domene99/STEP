@@ -22,16 +22,9 @@ async function loadMap() {
       if (!normalizedCoord) {
         return null;
       }
-      var bound = Math.pow(2, zoom);
+      var bound = Math.pow(2, zoom) - normalizedCoord.y - 1;
       return (
-        "https://mw1.google.com/mw-planetary/lunar/lunarmaps_v1/apollo" +
-        "/" +
-        zoom +
-        "/" +
-        normalizedCoord.x +
-        "/" +
-        (bound - normalizedCoord.y - 1) +
-        ".jpg"
+        `https://mw1.google.com/mw-planetary/lunar/lunarmaps_v1/apollo/${zoom}/${normalizedCoord.x}/${bound}.jpg`
       );
     },
     tileSize: new google.maps.Size(256, 256),
@@ -50,8 +43,7 @@ async function loadMap() {
 
   for (i in payload) {
     const info = payload[i];
-    console.log(info);
-    const imgRef = "http://mw1.google.com/mw-planetary/lunar/lunarmaps_v1/util/s".concat(info.missionNum).concat(".png");
+    const imgRef = `http://mw1.google.com/mw-planetary/lunar/lunarmaps_v1/util/s${info.missionNum}.png`;
     marker = new google.maps.Marker({ position: { lat: info.lat, lng: info.lng }, icon: imgRef, map: map });
 
     google.maps.event.addListener(marker, 'click', (function (marker, i) {
@@ -71,6 +63,7 @@ function getNormalizedCoord(coord, zoom) {
 
   // tile range in one direction range is dependent on zoom level
   // 0 = 1 tile, 1 = 2 tiles, 2 = 4 tiles, 3 = 8 tiles, etc
+  // 1 << zoom => 2^zoom
   var tileRange = 1 << zoom;
 
   // don't repeat across y-axis (vertically)

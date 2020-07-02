@@ -14,8 +14,10 @@
 
 package com.google.sps.servlets;
 
-import com.google.sps.classes.LandingSight;
+import com.google.sps.classes.LandingSite;
 import com.google.gson.Gson;
+import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,36 +27,40 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Returns landing sight data as a JSON array, e.g. [{"lat": 38.4404675, "lng": -122.7144313, "missionNum": "13", "description": "landed on Feb. 32 2022"}] */
+/** Returns landing site data as a JSON array, e.g. [{"lat": 38.4404675, "lng": -122.7144313, "missionNum": "13", "description": "landed on Feb. 32 2022"}] */
 @WebServlet("/landing-data")
 public class LandingDataServlet extends HttpServlet {
 
-  private Collection<LandingSight> landingSights;
+  private Collection<LandingSite> landingSites;
+  private String payload;
 
   @Override
   public void init() {
-    landingSights = new ArrayList<>();
+    landingSites = new ArrayList<>();
 
-    Scanner scanner = new Scanner(getServletContext().getResourceAsStream("/WEB-INF/landing-data.csv"));
-    while (scanner.hasNextLine()) {
-      String line = scanner.nextLine();
-      String[] cells = line.split(",");
+    try (Scanner scanner = new Scanner(getServletContext().getResourceAsStream("/WEB-INF/landing-data.csv"))) {
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            String[] cells = line.split(",");
+      
+            double lat = Double.parseDouble(cells[0]);
+            double lng = Double.parseDouble(cells[1]);
+            String missionNum = cells[2];
+            String description = cells[3];
+      
+            landingSites.add(new LandingSite(lat, lng, missionNum, description));
+          }
+          scanner.close();
 
-      double lat = Double.parseDouble(cells[0]);
-      double lng = Double.parseDouble(cells[1]);
-      String missionNum = cells[2];
-      String description = cells[3];
-
-      landingSights.add(new LandingSight(lat, lng, missionNum, description));
+          payload = new Gson().toJson(landingSites);
+    }catch (Exception e) {
+        System.out.println(e);
     }
-    scanner.close();
   }
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json");
-    Gson gson = new Gson();
-    String json = gson.toJson(landingSights);
-    response.getWriter().println(json);
+    response.getWriter().println(payload);
   }
 }

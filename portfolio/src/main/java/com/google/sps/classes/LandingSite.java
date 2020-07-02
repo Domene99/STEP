@@ -14,14 +14,14 @@
 
 package com.google.sps.classes;
 
-/** Represents a landing sight. */
-public class LandingSight {
-  private final double lat;
-  private final double lng;
-  private final String missionNum;
-  private final String description;
+/** Represents a landing site. */
+public class LandingSite {
+  public final double lat;
+  public final double lng;
+  public final String missionNum;
+  public final String description;
 
-  public LandingSight(double lat, double lng, String missionNum, String description) {
+  public LandingSite(double lat, double lng, String missionNum, String description) {
     this.lat = lat;
     this.lng = lng;
     this.missionNum = missionNum;
