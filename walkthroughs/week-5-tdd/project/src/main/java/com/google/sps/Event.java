@@ -14,6 +14,7 @@
 
 package com.google.sps;
 
+import com.google.sps.TimeRange;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;

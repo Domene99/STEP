@@ -14,10 +14,110 @@
 
 package com.google.sps;
 
+import com.google.common.collect.Iterables; 
+import com.google.common.collect.Sets;
+import com.google.sps.Event;
+import com.google.sps.TimeRange;
+import java.lang.Math;
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public final class FindMeetingQuery {
+
+  public static final Comparator<Event> EVENT_COMPARATOR = new Comparator<Event>() {
+
+    @Override
+    public int compare(Event a, Event b) {
+      return TimeRange.ORDER_BY_START.compare(a.getWhen(), b.getWhen());
+    }
+  };
+    
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
-    throw new UnsupportedOperationException("TODO: Implement this method.");
+    if (request.getAttendees().size() <= 0 && request.getOptionalAttendees().size() <= 0) {
+      return Arrays.asList(TimeRange.WHOLE_DAY);
+    }  
+    
+    HashSet<String> mandatoryAttendees = new HashSet<String>(request.getAttendees());
+    HashSet<String> optionalAttendees = new HashSet<String>(request.getOptionalAttendees());
+    HashSet<String> allAttendees = Sets.newHashSet(Iterables.concat(mandatoryAttendees, optionalAttendees));
+      
+    Event endOfDay = new Event("END_OF_DAY", TimeRange.fromStartDuration(TimeRange.END_OF_DAY + 1, 0), allAttendees);
+    Event startOfDay = new Event("START_OF_DAY", TimeRange.fromStartDuration(TimeRange.START_OF_DAY, 0), allAttendees);
+
+    ArrayList<Event> allEvents = new ArrayList<Event>(events);
+
+    allEvents.add(endOfDay);
+    allEvents.add(startOfDay);
+      
+    allEvents.sort(EVENT_COMPARATOR);
+    
+    Collection<TimeRange> available = availableTimesFromSortedEvents(mandatoryAttendees, allEvents, request);
+    Collection<TimeRange> availableWithOptional = availableTimesFromSortedEvents(optionalAttendees, allEvents, request);
+
+
+    return available;
+  }
+    
+  public Collection<TimeRange> availableTimesFromSortedEvents(HashSet<String> attendees, ArrayList<Event> events, MeetingRequest request) {
+    Collection<TimeRange> availableTimes = new ArrayList<>();
+    List<Event> sequentialEvents = new ArrayList<>(events);
+
+    for (int i = 0; i < sequentialEvents.size() - 1;) {
+      Event eventToCheck = sequentialEvents.get(i);
+      Event nextEvent = sequentialEvents.get(i + 1);
+      
+      int startTimeEvent = eventToCheck.getWhen().start();
+      int endTimeEvent = eventToCheck.getWhen().end();
+      int startTimeNextEvent = nextEvent.getWhen().start();
+      int endTimeNextEvent = nextEvent.getWhen().end();
+      
+      HashSet<String> attendeesForEvent = new HashSet<String>(eventToCheck.getAttendees());
+        
+      attendeesForEvent.retainAll(attendees);
+      
+      if (attendeesForEvent.size() <= 0) {
+        sequentialEvents.remove(i);
+      }
+
+      if (endTimeEvent >= startTimeNextEvent) {
+        sequentialEvents.remove(i);
+        sequentialEvents.remove(i);
+        TimeRange mergedTimeRange = TimeRange.fromStartDuration(startTimeEvent, Math.max(endTimeEvent, endTimeNextEvent) - startTimeEvent);
+        Event mergedEvent = new Event("MERGED_EVENT", mergedTimeRange, attendees);
+        sequentialEvents.add(i, mergedEvent);
+      } else {
+        ++i;
+      }
+    }
+      
+    for (int i = 0; i < sequentialEvents.size() - 1; ++i) {
+      
+      Event eventToCheck = sequentialEvents.get(i);
+      Event nextEvent = sequentialEvents.get(i + 1);
+      
+      int endTimeEvent = eventToCheck.getWhen().end();
+      int startTimeNextEvent = nextEvent.getWhen().start();
+      int startTimeEvent = eventToCheck.getWhen().start();
+      int endTimeNextEvent = nextEvent.getWhen().end();
+      
+      int duration = startTimeNextEvent - endTimeEvent;
+      if (duration >= request.getDuration()) {
+        availableTimes.add(TimeRange.fromStartDuration(endTimeEvent, duration));
+      }
+    }
+      
+    return availableTimes;
+  }
+
+  public void debugEv(ArrayList<Event> events) {
+    for (Event ev : events) {
+      System.out.print(ev.getWhen().start() + " " + ev.getWhen().end() + " ");
+    }
+    System.out.println("");
   }
 }
