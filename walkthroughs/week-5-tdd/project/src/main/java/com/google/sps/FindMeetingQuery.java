@@ -33,7 +33,10 @@ public final class FindMeetingQuery {
 
     @Override
     public int compare(Event a, Event b) {
-      return TimeRange.ORDER_BY_START.compare(a.getWhen(), b.getWhen());
+      if (a.getWhen().start() != b.getWhen().start())
+        return TimeRange.ORDER_BY_START.compare(a.getWhen(), b.getWhen());
+      else
+        return TimeRange.ORDER_BY_END.compare(a.getWhen(), b.getWhen());
     }
   };
     
@@ -56,17 +59,54 @@ public final class FindMeetingQuery {
       
     allEvents.sort(EVENT_COMPARATOR);
     
+
+
     Collection<TimeRange> available = availableTimesFromSortedEvents(mandatoryAttendees, allEvents, request);
+
+    if (optionalAttendees.size() == 0) {
+      return available;
+    }
+
     Collection<TimeRange> availableWithOptional = availableTimesFromSortedEvents(optionalAttendees, allEvents, request);
+    
+    if (available.size() == 0) {
+      return availableWithOptional;
+    }
+    
+    Collection<TimeRange> finalTimeRanges = new ArrayList<>();
 
+    for (TimeRange optionalTimeRange: availableWithOptional) {
+      int start = optionalTimeRange.start();
+      int end = optionalTimeRange.end();
+      for (TimeRange mandatoryTimeRange: available) {
+        int mandatoryStart = mandatoryTimeRange.start();
+        int mandatoryEnd = mandatoryTimeRange.end();
+        
+        if (mandatoryStart <= start && end <= mandatoryEnd) {
+          finalTimeRanges.add(optionalTimeRange);
+          break;
+        }
+      }
+    }
 
-    return available;
+    return finalTimeRanges.size() != 0 ? finalTimeRanges : available;
   }
     
   public Collection<TimeRange> availableTimesFromSortedEvents(HashSet<String> attendees, ArrayList<Event> events, MeetingRequest request) {
     Collection<TimeRange> availableTimes = new ArrayList<>();
     List<Event> sequentialEvents = new ArrayList<>(events);
 
+    for (int i = 0; i < sequentialEvents.size(); ++i) {
+      HashSet<String> attendeesForEvent = new HashSet<String>(sequentialEvents.get(i).getAttendees());
+
+      attendeesForEvent.retainAll(attendees);
+
+      if (attendeesForEvent.size() <= 0) {
+        sequentialEvents.remove(i);
+        --i;
+      }
+    }
+    
     for (int i = 0; i < sequentialEvents.size() - 1;) {
       Event eventToCheck = sequentialEvents.get(i);
       Event nextEvent = sequentialEvents.get(i + 1);
@@ -75,15 +115,7 @@ public final class FindMeetingQuery {
       int endTimeEvent = eventToCheck.getWhen().end();
       int startTimeNextEvent = nextEvent.getWhen().start();
       int endTimeNextEvent = nextEvent.getWhen().end();
-      
-      HashSet<String> attendeesForEvent = new HashSet<String>(eventToCheck.getAttendees());
-        
-      attendeesForEvent.retainAll(attendees);
-      
-      if (attendeesForEvent.size() <= 0) {
-        sequentialEvents.remove(i);
-      }
-
+          
       if (endTimeEvent >= startTimeNextEvent) {
         sequentialEvents.remove(i);
         sequentialEvents.remove(i);
@@ -102,22 +134,15 @@ public final class FindMeetingQuery {
       
       int endTimeEvent = eventToCheck.getWhen().end();
       int startTimeNextEvent = nextEvent.getWhen().start();
-      int startTimeEvent = eventToCheck.getWhen().start();
-      int endTimeNextEvent = nextEvent.getWhen().end();
       
       int duration = startTimeNextEvent - endTimeEvent;
+      
+
       if (duration >= request.getDuration()) {
         availableTimes.add(TimeRange.fromStartDuration(endTimeEvent, duration));
       }
     }
       
     return availableTimes;
-  }
-
-  public void debugEv(ArrayList<Event> events) {
-    for (Event ev : events) {
-      System.out.print(ev.getWhen().start() + " " + ev.getWhen().end() + " ");
-    }
-    System.out.println("");
   }
 }

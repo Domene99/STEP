@@ -303,7 +303,7 @@ public final class FindMeetingQueryTest {
     // Events  : |---------A-----------|
     // Day     : |---------------------|
     // Options : |---------------------|
-    Collection<Event> events = Arrays.asList(new Event("Event 1", TimeRange.WHOLE_DAY, Arrays.asList(PERSON_A)));
+    Collection<Event> events = Arrays.asList(new Event("Event 420", TimeRange.WHOLE_DAY, Arrays.asList(PERSON_A)));
 
     MeetingRequest request = new MeetingRequest(Arrays.asList(PERSON_A), DURATION_1_HOUR);
     request.addOptionalAttendee(PERSON_B);
