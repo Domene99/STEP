@@ -61,30 +61,30 @@ public final class FindMeetingQuery {
     
 
 
-    Collection<TimeRange> available = availableTimesFromSortedEvents(mandatoryAttendees, allEvents, request);
+    ArrayList<TimeRange> available = availableTimesFromSortedEvents(mandatoryAttendees, allEvents, request);
 
     if (optionalAttendees.size() == 0) {
       return available;
     }
 
-    Collection<TimeRange> availableWithOptional = availableTimesFromSortedEvents(optionalAttendees, allEvents, request);
+    ArrayList<TimeRange> availableWithOptional = availableTimesFromSortedEvents(optionalAttendees, allEvents, request);
     
     if (available.size() == 0) {
       return availableWithOptional;
     }
     
-    Collection<TimeRange> finalTimeRanges = new ArrayList<>();
+    ArrayList<TimeRange> finalTimeRanges = new ArrayList<>();
 
     for (TimeRange optionalTimeRange: availableWithOptional) {
       int start = optionalTimeRange.start();
       int end = optionalTimeRange.end();
-      for (TimeRange mandatoryTimeRange: available) {
-        int mandatoryStart = mandatoryTimeRange.start();
-        int mandatoryEnd = mandatoryTimeRange.end();
-        
-        if (mandatoryStart <= start && end <= mandatoryEnd) {
+
+      int indexOfIntersection = binarySearchOverlappingTimeRange(available, 0, available.size() - 1, start);
+
+      if (indexOfIntersection != -1) {
+        int mandatoryEnd = available.get(indexOfIntersection).end();
+        if (end <= mandatoryEnd) {
           finalTimeRanges.add(optionalTimeRange);
-          break;
         }
       }
     }
@@ -92,9 +92,27 @@ public final class FindMeetingQuery {
     return finalTimeRanges.size() != 0 ? finalTimeRanges : available;
   }
     
-  public Collection<TimeRange> availableTimesFromSortedEvents(HashSet<String> attendees, ArrayList<Event> events, MeetingRequest request) {
-    Collection<TimeRange> availableTimes = new ArrayList<>();
-    List<Event> sequentialEvents = new ArrayList<>(events);
+  public int binarySearchOverlappingTimeRange(ArrayList<TimeRange> mandatory, int startIndex, int endIndex, int startOfOptional) {
+    int startOfMandatory = mandatory.get(startIndex).start();
+
+    if (startIndex == endIndex) {
+      return startOfMandatory <= startOfOptional ? startIndex : -1;  
+    }
+
+    int midIndex = startIndex + (endIndex - startIndex) / 2;
+
+    if (startOfOptional < mandatory.get(midIndex).start()) {
+      return binarySearchOverlappingTimeRange(mandatory, startIndex, midIndex, startOfOptional);
+    }
+
+    int ret = binarySearchOverlappingTimeRange(mandatory, midIndex + 1, endIndex, startOfOptional);
+
+    return ret == -1 ? midIndex : ret;
+  }
+
+  public ArrayList<TimeRange> availableTimesFromSortedEvents(HashSet<String> attendees, ArrayList<Event> events, MeetingRequest request) {
+    ArrayList<TimeRange> availableTimes = new ArrayList<>();
+    ArrayList<Event> sequentialEvents = new ArrayList<>(events);
 
     for (int i = 0; i < sequentialEvents.size(); ++i) {
       HashSet<String> attendeesForEvent = new HashSet<String>(sequentialEvents.get(i).getAttendees());
