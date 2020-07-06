@@ -52,8 +52,7 @@ public class LandingDataServlet extends HttpServlet {
           }
 
           payload = new Gson().toJson(landingSites);
-    }catch (Exception e) {
-        System.out.println(e);
+  
     }
   }
 
