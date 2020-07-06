@@ -53,8 +53,6 @@ public class ChartServlet extends HttpServlet {
 
             patentsPerYear.put(year, patents + 1);
           }
-    }catch (Exception e) {
-        System.out.println(e);
     }
 
     try (Scanner scanner = new Scanner(getServletContext().getResourceAsStream("/WEB-INF/budget.csv"))) {
@@ -71,8 +69,6 @@ public class ChartServlet extends HttpServlet {
 
             dataPoints.add(new ChartDataPoint(year, budgetOfYear, patents));
         }
-    }catch (Exception e) {
-        System.out.println(e);
     }
 
     payload = new Gson().toJson(dataPoints);
