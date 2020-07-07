@@ -16,8 +16,6 @@ package com.google.sps;
 
 import com.google.common.collect.Iterables; 
 import com.google.common.collect.Sets;
-import com.google.sps.Event;
-import com.google.sps.TimeRange;
 import java.lang.Math;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -59,8 +57,6 @@ public final class FindMeetingQuery {
       
     allEvents.sort(EVENT_COMPARATOR);
     
-
-
     ArrayList<TimeRange> available = availableTimesFromSortedEvents(mandatoryAttendees, allEvents, request);
 
     if (optionalAttendees.size() == 0) {
