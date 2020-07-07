@@ -14,7 +14,7 @@
 
 package com.google.sps.classes;
 
-/** Represents a chart data point. */
+// Represents a chart data point.
 public class ChartDataPoint {
   public final int year;
   public final int budget;
