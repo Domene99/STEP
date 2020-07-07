@@ -74,7 +74,7 @@ public final class FindMeetingQueryTest {
     MeetingRequest request = new MeetingRequest(Arrays.asList(PERSON_A), duration);
 
     Collection<TimeRange> actual = query.query(NO_EVENTS, request);
-    Collection<TimeRange> expected = Arrays.asList();
+    Collection<TimeRange> expected = Collections.emptyList();
 
     Assert.assertEquals(expected, actual);
   }
@@ -267,7 +267,7 @@ public final class FindMeetingQueryTest {
     MeetingRequest request = new MeetingRequest(Arrays.asList(PERSON_A), DURATION_60_MINUTES);
 
     Collection<TimeRange> actual = query.query(events, request);
-    Collection<TimeRange> expected = Arrays.asList();
+    Collection<TimeRange> expected = Collections.emptyList();
 
     Assert.assertEquals(expected, actual);
   }
@@ -329,12 +329,12 @@ public final class FindMeetingQueryTest {
         new Event("Event 2", TimeRange.fromStartEnd(TIME_0800AM, TimeRange.END_OF_DAY, true),
             Arrays.asList(PERSON_B)));
 
-    MeetingRequest request = new MeetingRequest(Arrays.asList(), DURATION_1_HOUR);
+    MeetingRequest request = new MeetingRequest(Collections.emptyList(), DURATION_1_HOUR);
     request.addOptionalAttendee(PERSON_A);
     request.addOptionalAttendee(PERSON_B);
 
     Collection<TimeRange> actual = query.query(events, request);
-    Collection<TimeRange> expected = Arrays.asList();
+    Collection<TimeRange> expected = Collections.emptyList();
 
     Assert.assertEquals(expected, actual);
   }
@@ -343,10 +343,11 @@ public final class FindMeetingQueryTest {
   public void optionalHasFullDay() {
     // Optional attendee has all day event.
     //
-    // Events  :       |--A--|     |--B--|
+    // Events  :       |--A--|
+    //                      |--B--|
     // Optional: |--------------C--------------|
     // Day     : |-----------------------------|
-    // Options : |--1--|     |--2--|     |--3--|
+    // Options : |--1--|          |------3-----|
 
     Collection<Event> events = Arrays.asList(
         new Event("Event 1", TimeRange.fromStartDuration(TIME_0830AM, DURATION_60_MINUTES),

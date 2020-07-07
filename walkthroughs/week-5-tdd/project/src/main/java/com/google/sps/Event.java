@@ -17,6 +17,7 @@ package com.google.sps;
 import com.google.sps.TimeRange;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -94,4 +95,15 @@ public final class Event {
     // interface documentation, equals will check for set-equality across all set implementations.
     return a.title.equals(b.title) && a.when.equals(b.when) && a.attendees.equals(b.attendees);
   }
+
+  public static final Comparator<Event> EVENT_COMPARATOR = new Comparator<Event>() {
+
+    @Override
+    public int compare(Event a, Event b) {
+      if (a.getWhen().start() != b.getWhen().start())
+        return TimeRange.ORDER_BY_START.compare(a.getWhen(), b.getWhen());
+      else
+        return TimeRange.ORDER_BY_END.compare(a.getWhen(), b.getWhen());
+    }
+  };
 }

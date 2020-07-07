@@ -26,18 +26,15 @@ import java.util.List;
 import java.util.Set;
 
 public final class FindMeetingQuery {
-
-  public static final Comparator<Event> EVENT_COMPARATOR = new Comparator<Event>() {
-
-    @Override
-    public int compare(Event a, Event b) {
-      if (a.getWhen().start() != b.getWhen().start())
-        return TimeRange.ORDER_BY_START.compare(a.getWhen(), b.getWhen());
-      else
-        return TimeRange.ORDER_BY_END.compare(a.getWhen(), b.getWhen());
-    }
-  };
-    
+  /*
+   * Function to return a collection of time ranges where people are available to meet
+   * 
+   * @param events    A collection of events which has attendees, our results should avoid these events
+   * @param request   A specification on the minimum duration, mandatory and optional attendees
+   * 
+   * @return          A collection of time ranges where attendees are available
+   * 
+  */
   public Collection<TimeRange> query(Collection<Event> events, MeetingRequest request) {
     if (request.getAttendees().size() <= 0 && request.getOptionalAttendees().size() <= 0) {
       return Arrays.asList(TimeRange.WHOLE_DAY);
@@ -47,15 +44,17 @@ public final class FindMeetingQuery {
     HashSet<String> optionalAttendees = new HashSet<String>(request.getOptionalAttendees());
     HashSet<String> allAttendees = Sets.newHashSet(Iterables.concat(mandatoryAttendees, optionalAttendees));
       
-    Event endOfDay = new Event("END_OF_DAY", TimeRange.fromStartDuration(TimeRange.END_OF_DAY + 1, 0), allAttendees);
-    Event startOfDay = new Event("START_OF_DAY", TimeRange.fromStartDuration(TimeRange.START_OF_DAY, 0), allAttendees);
+    String endOfDayTitle = "END_OF_DAY";
+    String startOfDayTitle = "START_OF_DAY";
+    Event endOfDay = new Event(endOfDayTitle, TimeRange.fromStartDuration(TimeRange.END_OF_DAY + 1, 0), allAttendees);
+    Event startOfDay = new Event(startOfDayTitle, TimeRange.fromStartDuration(TimeRange.START_OF_DAY, 0), allAttendees);
 
     ArrayList<Event> allEvents = new ArrayList<Event>(events);
 
     allEvents.add(endOfDay);
     allEvents.add(startOfDay);
       
-    allEvents.sort(EVENT_COMPARATOR);
+    allEvents.sort(Event.EVENT_COMPARATOR);
     
     ArrayList<TimeRange> available = availableTimesFromSortedEvents(mandatoryAttendees, allEvents, request);
 
@@ -106,10 +105,20 @@ public final class FindMeetingQuery {
     return ret == -1 ? midIndex : ret;
   }
 
+
+  /*
+   * Method to get available times from sorted events
+   * Does this by removing events where there's no attendees, then merging events
+   * which share some time. Finally the gaps are the result.
+   * 
+   * Runtime: O(n)
+   *
+  */
   public ArrayList<TimeRange> availableTimesFromSortedEvents(HashSet<String> attendees, ArrayList<Event> events, MeetingRequest request) {
     ArrayList<TimeRange> availableTimes = new ArrayList<>();
     ArrayList<Event> sequentialEvents = new ArrayList<>(events);
 
+    // Removes events in which no attendees intersect between the event and requested attendees
     for (int i = 0; i < sequentialEvents.size(); ++i) {
       HashSet<String> attendeesForEvent = new HashSet<String>(sequentialEvents.get(i).getAttendees());
 
@@ -121,26 +130,30 @@ public final class FindMeetingQuery {
       }
     }
     
+
+    // Merges events which share some time
+    // Ex:       |---A---|
+    //                |--B--|
+    // Becomes:  |----------| <- MERGED_EVENT
     for (int i = 0; i < sequentialEvents.size() - 1;) {
       Event eventToCheck = sequentialEvents.get(i);
       Event nextEvent = sequentialEvents.get(i + 1);
       
-      int startTimeEvent = eventToCheck.getWhen().start();
-      int endTimeEvent = eventToCheck.getWhen().end();
-      int startTimeNextEvent = nextEvent.getWhen().start();
-      int endTimeNextEvent = nextEvent.getWhen().end();
-          
-      if (endTimeEvent >= startTimeNextEvent) {
+      TimeRange eventTimeRange = eventToCheck.getWhen();
+      TimeRange nextEventTimeRange = nextEvent.getWhen();
+
+      if (eventTimeRange.overlaps(nextEventTimeRange)) {
         sequentialEvents.remove(i);
         sequentialEvents.remove(i);
-        TimeRange mergedTimeRange = TimeRange.fromStartDuration(startTimeEvent, Math.max(endTimeEvent, endTimeNextEvent) - startTimeEvent);
+        TimeRange mergedTimeRange = TimeRange.fromStartEnd(eventTimeRange.start(), Math.max(eventTimeRange.end(), nextEventTimeRange.end()), false);
         Event mergedEvent = new Event("MERGED_EVENT", mergedTimeRange, attendees);
         sequentialEvents.add(i, mergedEvent);
       } else {
         ++i;
       }
     }
-      
+     
+    // Takes all gaps between events and becomes result
     for (int i = 0; i < sequentialEvents.size() - 1; ++i) {
       
       Event eventToCheck = sequentialEvents.get(i);
