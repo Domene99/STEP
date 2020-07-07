@@ -47,9 +47,11 @@ public class ChartServlet extends HttpServlet {
             String[] cells = line.split(",");
 
             int year = Integer.parseInt(cells[5]);
-            Integer patents = patentsPerYear.getOrDefault(year, 0);
+            patentsPerYear.compute(year, (key, val) -> val == null ? 1 : val + 1);
+	    
+	    //int patents = patentsPerYear.getOrDefault(year, 0);
 
-            patentsPerYear.put(year, patents + 1);
+            //patentsPerYear.put(year, patents + 1);
           }
     }
 
@@ -61,7 +63,7 @@ public class ChartServlet extends HttpServlet {
             int year = Integer.parseInt(cells[0]);
             int budgetOfYear = Integer.parseInt(cells[1]);
                 
-            Integer patents = patentsPerYear.getOrDefault(year, 0);
+            int patents = patentsPerYear.getOrDefault(year, 0);
 	    
             dataPoints.add(new ChartDataPoint(year, budgetOfYear, patents));
         }

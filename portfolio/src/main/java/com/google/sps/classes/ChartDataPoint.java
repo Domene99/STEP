@@ -18,9 +18,9 @@ package com.google.sps.classes;
 public class ChartDataPoint {
   public final int year;
   public final int budget;
-  public final Integer patents;
+  public final int patents;
 
-  public ChartDataPoint(int year, int budget, Integer patents) {
+  public ChartDataPoint(int year, int budget, int patents) {
       this.year = year;
       this.budget = budget;
       this.patents = patents;
