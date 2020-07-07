@@ -28,12 +28,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Returns budget-patent data of NASA as a JSON array, e.g. [{"year": 1900, "budget": 20, "patents": 2}] */
+// Returns budget-patent data of NASA as a JSON array, e.g. [{"year": 1900, "budget": 20, "patents": 2}]
 @WebServlet("/nasa-data")
 public class ChartServlet extends HttpServlet {
 
   private Collection<ChartDataPoint> dataPoints;
-  private String payload;
+  private String chartData;
   private HashMap<Integer, Integer> patentsPerYear;
 
   @Override
@@ -47,14 +47,8 @@ public class ChartServlet extends HttpServlet {
             String[] cells = line.split(",");
 
             int year = Integer.parseInt(cells[5]);
-            Integer patents = patentsPerYear.get(year);
-            if (patents == null)
-                patents = 0;
-
-            patentsPerYear.put(year, patents + 1);
+            patentsPerYear.compute(year, (key, val) -> val == null ? 1 : val + 1);  
           }
-    }catch (Exception e) {
-        System.out.println(e);
     }
 
     try (Scanner scanner = new Scanner(getServletContext().getResourceAsStream("/WEB-INF/budget.csv"))) {
@@ -65,22 +59,18 @@ public class ChartServlet extends HttpServlet {
             int year = Integer.parseInt(cells[0]);
             int budgetOfYear = Integer.parseInt(cells[1]);
                 
-            Integer patents = patentsPerYear.get(year);
-            if (patents == null)
-                patents = 0;
-
+            int patents = patentsPerYear.getOrDefault(year, 0);
+	    
             dataPoints.add(new ChartDataPoint(year, budgetOfYear, patents));
         }
-    }catch (Exception e) {
-        System.out.println(e);
     }
 
-    payload = new Gson().toJson(dataPoints);
+    chartData = new Gson().toJson(dataPoints);
   }
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json");
-    response.getWriter().println(payload);
+    response.getWriter().println(chartData);
   }
 }

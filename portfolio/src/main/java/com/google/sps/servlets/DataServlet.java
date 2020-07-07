@@ -26,6 +26,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.gson.Gson;
 import com.google.sps.classes.Comment;
+import com.google.sps.constants.Constants;
 import java.io.IOException;
 import static java.lang.Math.toIntExact;
 import javax.servlet.annotation.WebServlet;
@@ -38,13 +39,12 @@ import java.util.List;
 @WebServlet("/comment")
 public class DataServlet extends HttpServlet {
   private final DatastoreService dataStore = DatastoreServiceFactory.getDatastoreService();
-  private final String entityName = "Comment";
   private Comment comment;
 
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
     response.setContentType("application/json");
-    Query query = new Query(entityName).addSort("likes", SortDirection.DESCENDING);
+    Query query = new Query(Constants.COMMENT_ENTITY).addSort("likes", SortDirection.DESCENDING);
 
     PreparedQuery comments = dataStore.prepare(query);
     List<Comment> commentsToSet = new ArrayList<>();
@@ -83,7 +83,7 @@ public class DataServlet extends HttpServlet {
     response.setContentType("application/json;");
 
     try {
-      Key key = KeyFactory.createKey(entityName, Long.parseLong(request.getHeader("id")));
+      Key key = KeyFactory.createKey(Constants.COMMENT_ENTITY, Long.parseLong(request.getHeader("id")));
       dataStore.delete(key);
     } catch (Exception e) {
       System.out.println(e);
