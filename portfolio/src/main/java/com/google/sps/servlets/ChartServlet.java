@@ -47,11 +47,7 @@ public class ChartServlet extends HttpServlet {
             String[] cells = line.split(",");
 
             int year = Integer.parseInt(cells[5]);
-            patentsPerYear.compute(year, (key, val) -> val == null ? 1 : val + 1);
-	    
-	    //int patents = patentsPerYear.getOrDefault(year, 0);
-
-            //patentsPerYear.put(year, patents + 1);
+            patentsPerYear.compute(year, (key, val) -> val == null ? 1 : val + 1);  
           }
     }
 
