@@ -18,11 +18,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.lang.Math;
 import java.util.Arrays;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedList;
 import java.util.Set;
 
 public final class FindMeetingQuery {
@@ -33,9 +35,8 @@ public final class FindMeetingQuery {
    * where there is an event involving an attendee. If there are time ranges where all mandatory attendees 
    * and optional attendees are available this gets returned.
    * 
-   * Runtime Complexity: O(n*(n + q + k)) where 'n' is equals to the length of events
+   * Runtime Complexity: O(n*(q + k)) where 'n' is equals to the length of events
    * 'q' is equals to the length of the mandatory attendees and 'k' the length of optional
-   * could be considered O(n^2) for simplicity
    * 
    * @param events    A collection of events which has attendees, our results should avoid these events
    * @param request   A specification on the minimum duration, mandatory and optional attendees
@@ -57,30 +58,30 @@ public final class FindMeetingQuery {
     Event endOfDay = new Event(endOfDayTitle, TimeRange.fromStartDuration(TimeRange.END_OF_DAY + 1, 0), allAttendees);
     Event startOfDay = new Event(startOfDayTitle, TimeRange.fromStartDuration(TimeRange.START_OF_DAY, 0), allAttendees);
 
-    ArrayList<Event> allEvents = new ArrayList<Event>(events);
+    LinkedList<Event> sortedEvents = new LinkedList<Event>(events);
 
-    allEvents.add(endOfDay);
-    allEvents.add(startOfDay);
+    sortedEvents.add(endOfDay);
+    sortedEvents.add(startOfDay);
       
-    allEvents.sort(Event.EVENT_COMPARATOR);
+    sortedEvents.sort(Event.EVENT_COMPARATOR);
 
-    ArrayList<Event> applicableEventsOnly = removeEventsWithNoAttendees(mandatoryAttendees, allEvents);
-    ArrayList<Event> mandatoryNonOverlapping = sortedEventsIntoNonOverlappingSortedEvents(mandatoryAttendees, applicableEventsOnly);
-    ArrayList<TimeRange> available = availableTimesFromSortedNonOverlappingEvents(mandatoryNonOverlapping, request);
+    LinkedList<Event> applicableEventsOnly = removeEventsWithNoAttendees(mandatoryAttendees, sortedEvents);
+    LinkedList<Event> mandatoryNonOverlapping = sortedEventsIntoNonOverlappingSortedEvents(mandatoryAttendees, applicableEventsOnly);
+    LinkedList<TimeRange> available = availableTimesFromSortedNonOverlappingEvents(mandatoryNonOverlapping, request);
 
     if (optionalAttendees.size() == 0) {
       return available;
     }
 
-    ArrayList<Event> applicableEventsOnlyOfOptional = removeEventsWithNoAttendees(optionalAttendees, allEvents);
-    ArrayList<Event> optionalNonOverlapping = sortedEventsIntoNonOverlappingSortedEvents(optionalAttendees, applicableEventsOnlyOfOptional);
-    ArrayList<TimeRange> availableWithOptional = availableTimesFromSortedNonOverlappingEvents(optionalNonOverlapping, request);
+    LinkedList<Event> applicableEventsOnlyOfOptional = removeEventsWithNoAttendees(optionalAttendees, sortedEvents);
+    LinkedList<Event> optionalNonOverlapping = sortedEventsIntoNonOverlappingSortedEvents(optionalAttendees, applicableEventsOnlyOfOptional);
+    LinkedList<TimeRange> availableWithOptional = availableTimesFromSortedNonOverlappingEvents(optionalNonOverlapping, request);
     
     if (available.size() == 0) {
       return availableWithOptional;
     }
     
-    ArrayList<TimeRange> finalTimeRanges = mergeTimeRangesThatIntersect(availableWithOptional, available);
+    LinkedList<TimeRange> finalTimeRanges = mergeTimeRangesThatIntersect(availableWithOptional, available);
     return finalTimeRanges;
   }
    
@@ -95,18 +96,29 @@ public final class FindMeetingQuery {
    * return   A list of time ranges where all ranges are within both input lists
    * 
   */
-  private ArrayList<TimeRange> mergeTimeRangesThatIntersect(ArrayList<TimeRange> optional, ArrayList<TimeRange> mandatory) {
+  private LinkedList<TimeRange> mergeTimeRangesThatIntersect(LinkedList<TimeRange> optional, LinkedList<TimeRange> mandatory) {
 
-    ArrayList<TimeRange> finalTimeRanges = new ArrayList<>();
+    LinkedList<TimeRange> finalTimeRanges = new LinkedList<>();
+
+    System.out.println("---------------");
+    LinkedList<Integer> startValues = new LinkedList<>();
+    for (TimeRange mandatoryTimeRange: mandatory) {
+      startValues.add(mandatoryTimeRange.start());
+      System.out.println(mandatoryTimeRange.start());
+    }
 
     for (TimeRange optionalTimeRange: optional) {
       int start = optionalTimeRange.start();
       int end = optionalTimeRange.end();
 
-      int indexOfIntersection = binarySearchOverlappingTimeRange(mandatory, 0, mandatory.size() - 1, start);
-
-      if (indexOfIntersection != -1) {
-        int mandatoryEnd = mandatory.get(indexOfIntersection).end();
+      // This only works because java's binary search returns (-(insertion_point) - 1) 
+      // if not found, meaning that the negative is 2 indexes beyond what the closest 
+      // lesser than element exists
+      int index = Collections.binarySearch(startValues, start);
+      index = index >= 0 ? index : -index - 2;
+  
+      if (index != -1) {
+        int mandatoryEnd = mandatory.get(index).end();
         if (end <= mandatoryEnd) {
           finalTimeRanges.add(optionalTimeRange);
         }
@@ -115,42 +127,11 @@ public final class FindMeetingQuery {
 
     return finalTimeRanges.size() != 0 ? finalTimeRanges : mandatory;
   }
-  
-  /*
-   * This function searches for the element closest and not greater than startOfOptional or equal
-   * 
-   * Runtime complexity: O(logn) where 'n' is the size of mandatory
-   * 
-   * @param mandatory       A list of mandatory time ranges in which to search
-   * @param startIndex      The lowest index in which to search for
-   * @param endIndex        The highest index in which to search for
-   * @param startOfOptional The element to search for
-  */
-  private int binarySearchOverlappingTimeRange(ArrayList<TimeRange> mandatory, int startIndex, int endIndex, int startOfOptional) {
-    int midIndex = -1;
-    while (startIndex <= endIndex) {
-      int startOfMandatory = mandatory.get(startIndex).start();
-      
-      if (startIndex == endIndex) {
-        return startOfMandatory <= startOfOptional ? startIndex : -1;  
-      }
-
-      midIndex = startIndex + (endIndex - startIndex) / 2;
-      
-      if (startOfOptional < mandatory.get(midIndex).start()) {
-        endIndex = midIndex;
-      } else {
-        startIndex = midIndex + 1;
-      }
-    }    
-
-    return midIndex;
-  }
 
   /*
    * Removes events in which no attendees intersect between the event and requested attendees
    * 
-   * Runtime O(n*(n + q)) where 'n' is the length of events and 'q' is the length of the attendees
+   * Runtime O(n*q) where 'n' is the length of events and 'q' is the length of the attendees
    * 
    * @param attendes    A hashset of all applicable attendees
    * @param events      A sorted list of the events to merge
@@ -158,16 +139,16 @@ public final class FindMeetingQuery {
    * return   A list of events where all events have at least one attendee from the set
    *  
   */
-  private ArrayList<Event> removeEventsWithNoAttendees(HashSet<String> attendees, ArrayList<Event> events) {
-    ArrayList<Event> sequentialEvents = new ArrayList<>(events);
+  private LinkedList<Event> removeEventsWithNoAttendees(HashSet<String> attendees, LinkedList<Event> events) {
+    LinkedList<Event> sequentialEvents = new LinkedList<>(events);
 
     for (int i = 0; i < sequentialEvents.size(); ++i) { // n
       HashSet<String> attendeesForEvent = new HashSet<String>(sequentialEvents.get(i).getAttendees());
 
-      attendeesForEvent.retainAll(attendees); // q
+      boolean shareNoElement = Collections.disjoint(attendeesForEvent, attendees); // q
 
-      if (attendeesForEvent.size() <= 0) {
-        sequentialEvents.remove(i); // n
+      if (shareNoElement) {
+        sequentialEvents.remove(i);
         --i;
       }
     }
@@ -181,7 +162,7 @@ public final class FindMeetingQuery {
    *                |--B--|
    * Becomes:  |----------| <- MERGED_EVENT 
    * 
-   * Runtime: O(n^2) where 'n' is the length of the events
+   * Runtime: O(n) where 'n' is the length of the events
    *
    * @param attendes    A hashset of all applicable attendees
    * @param events      A sorted list of the events to merge
@@ -189,10 +170,10 @@ public final class FindMeetingQuery {
    * return   A list of sorted and non overlapping sorted events
    * 
   */
-  private ArrayList<Event> sortedEventsIntoNonOverlappingSortedEvents(HashSet<String> attendees, ArrayList<Event> events) {
-    ArrayList<Event> sequentialEvents = new ArrayList<>(events);    
+  private LinkedList<Event> sortedEventsIntoNonOverlappingSortedEvents(HashSet<String> attendees, LinkedList<Event> events) {
+    LinkedList<Event> sequentialEvents = new LinkedList<>(events); // n    
 
-    for (int i = 0; i < sequentialEvents.size() - 1;) { // n
+    for (int i = 0; i < sequentialEvents.size() - 1; ++i) { // n
       Event eventToCheck = sequentialEvents.get(i);
       Event nextEvent = sequentialEvents.get(i + 1);
       
@@ -200,13 +181,12 @@ public final class FindMeetingQuery {
       TimeRange nextEventTimeRange = nextEvent.getWhen();
 
       if (eventTimeRange.overlaps(nextEventTimeRange)) {
-        sequentialEvents.remove(i); // n
-        sequentialEvents.remove(i); // n
+        sequentialEvents.remove(i);
+        sequentialEvents.remove(i);
         TimeRange mergedTimeRange = TimeRange.fromStartEnd(eventTimeRange.start(), Math.max(eventTimeRange.end(), nextEventTimeRange.end()), false);
         Event mergedEvent = new Event("MERGED_EVENT", mergedTimeRange, attendees);
-        sequentialEvents.add(i, mergedEvent); // n
-      } else {
-        ++i;
+        sequentialEvents.add(i, mergedEvent);
+        --i;
       }
     }
 
@@ -216,8 +196,7 @@ public final class FindMeetingQuery {
   /*
    * Takes all gaps between events which are at least a certain duration and returns it
    * 
-   * Runtime complexity: O(n^2) or O(n*k) where 'n' is the size of sequentialEvents,
-   * 'k' is the size of availableTimes and can be approximated to 'n'
+   * Runtime complexity: O(n) where 'n' is the size of sequentialEvents
    * 
    * @param sequentialEvents  list of events that are sorted by time and non overlapping
    * @param request
@@ -225,8 +204,8 @@ public final class FindMeetingQuery {
    * return list of time ranges 
    * 
    */
-  private ArrayList<TimeRange> availableTimesFromSortedNonOverlappingEvents (ArrayList<Event> sequentialEvents, MeetingRequest request) {
-    ArrayList<TimeRange> availableTimes = new ArrayList<>();
+  private LinkedList<TimeRange> availableTimesFromSortedNonOverlappingEvents (LinkedList<Event> sequentialEvents, MeetingRequest request) {
+    LinkedList<TimeRange> availableTimes = new LinkedList<>();
     for (int i = 0; i < sequentialEvents.size() - 1; ++i) { // n
       
       Event eventToCheck = sequentialEvents.get(i);
@@ -239,7 +218,7 @@ public final class FindMeetingQuery {
       
 
       if (duration >= request.getDuration()) {
-        availableTimes.add(TimeRange.fromStartDuration(endTimeEvent, duration)); // k
+        availableTimes.add(TimeRange.fromStartDuration(endTimeEvent, duration));
       }
     }
       

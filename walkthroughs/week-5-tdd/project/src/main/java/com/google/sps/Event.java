@@ -100,10 +100,11 @@ public final class Event {
 
     @Override
     public int compare(Event a, Event b) {
-      if (a.getWhen().start() != b.getWhen().start())
+      if (a.getWhen().start() != b.getWhen().start()) {
         return TimeRange.ORDER_BY_START.compare(a.getWhen(), b.getWhen());
-      else
+      } else {
         return TimeRange.ORDER_BY_END.compare(a.getWhen(), b.getWhen());
+      }
     }
   };
 }
