@@ -100,11 +100,9 @@ public final class FindMeetingQuery {
 
     LinkedList<TimeRange> finalTimeRanges = new LinkedList<>();
 
-    System.out.println("---------------");
     LinkedList<Integer> startValues = new LinkedList<>();
     for (TimeRange mandatoryTimeRange: mandatory) {
       startValues.add(mandatoryTimeRange.start());
-      System.out.println(mandatoryTimeRange.start());
     }
 
     for (TimeRange optionalTimeRange: optional) {
