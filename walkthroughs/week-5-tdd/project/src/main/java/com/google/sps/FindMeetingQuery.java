@@ -90,7 +90,7 @@ public final class FindMeetingQuery {
   /*
    * Function to merge time ranges that intersect between two lists of time ranges
    * 
-   * Runtime: O(n*logm) where 'n' is the length of optional and 'm' is the length of mandatory
+   * Runtime: O(n + m) where 'n' is the length of optional and 'm' is the length of mandatory
    * 
    * @param optional    A list of time ranges in which for every one we'll search for an intersection
    * @param mandatory   A list of time ranges to search within
@@ -100,26 +100,27 @@ public final class FindMeetingQuery {
   */
   private ArrayList<TimeRange> mergeTimeRangesThatIntersect(ArrayList<TimeRange> optional, ArrayList<TimeRange> mandatory) {
     ArrayList<TimeRange> finalTimeRanges = new ArrayList<>();
-
-    ArrayList<Integer> startValues = new ArrayList<>();
-    for (TimeRange mandatoryTimeRange: mandatory) {
-      startValues.add(mandatoryTimeRange.start());
-    }
+    int mandatoryIndex = 0;
 
     for (TimeRange optionalTimeRange: optional) {
       int start = optionalTimeRange.start();
       int end = optionalTimeRange.end();
 
-      // This only works because java's binary search returns (-(insertion_point) - 1) 
-      // if not found, meaning that the negative is 2 indexes beyond what the closest 
-      // lesser than element exists
-      int index = Collections.binarySearch(startValues, start);
-      index = index >= 0 ? index : (index + 2) * -1;
-  
-      if (index != -1) {
-        int mandatoryEnd = mandatory.get(index).end();
-        if (end <= mandatoryEnd) {
+      while (mandatoryIndex < mandatory.size()) {
+        TimeRange possibleIntersection = mandatory.get(mandatoryIndex);
+        
+        int mandatoryStart = possibleIntersection.start();
+        int mandatoryEnd = possibleIntersection.end();
+
+        if (mandatoryStart > start) {
+          break;
+        }
+
+        if (mandatoryEnd >= end) {
           finalTimeRanges.add(optionalTimeRange);
+          break;  
+        } else {
+          ++mandatoryIndex;
         }
       }
     }
@@ -140,10 +141,9 @@ public final class FindMeetingQuery {
   */
   private LinkedList<Event> removeEventsWithNoAttendees(HashSet<String> attendees, LinkedList<Event> events) {
     LinkedList<Event> sequentialEvents = new LinkedList<>(events);
-    ListIterator listIterator = sequentialEvents.listIterator();
 
-    while (listIterator.hasNext()) { // n
-      Event currEvent = (Event) listIterator.next();
+    for (ListIterator<Event> listIterator = sequentialEvents.listIterator(); listIterator.hasNext();) { // n
+      Event currEvent = listIterator.next();
       HashSet<String> attendeesForEvent = new HashSet<String>(currEvent.getAttendees());
 
       boolean shareNoElement = Collections.disjoint(attendeesForEvent, attendees); // q
@@ -171,25 +171,24 @@ public final class FindMeetingQuery {
    * 
   */
   private LinkedList<Event> sortedEventsIntoNonOverlappingSortedEvents(HashSet<String> attendees, LinkedList<Event> events) {
-    LinkedList<Event> sequentialEvents = new LinkedList<>(events); // n    
-    ListIterator listIterator = sequentialEvents.listIterator();
+    LinkedList<Event> sequentialEvents = new LinkedList<>(events); // n
 
-    while (listIterator.hasNext()) { // n
-      Event eventToCheck = (Event) listIterator.next();
-      if (listIterator.hasNext()) {
-        Event nextEvent = (Event) listIterator.next();
+    for (ListIterator<Event> listIterator = sequentialEvents.listIterator(); listIterator.hasNext();) { // n
+      Event eventToCheck = listIterator.next();
+      if (!listIterator.hasNext()) {
+        break;
+      }
+      Event nextEvent = listIterator.next();
+      listIterator.previous();
+      TimeRange eventTimeRange = eventToCheck.getWhen();
+      TimeRange nextEventTimeRange = nextEvent.getWhen();
+      
+      if (eventTimeRange.overlaps(nextEventTimeRange)) {
+        listIterator.remove();
+        TimeRange mergedTimeRange = TimeRange.fromStartEnd(eventTimeRange.start(), Math.max(eventTimeRange.end(), nextEventTimeRange.end()), false);
+        Event mergedEvent = new Event("MERGED_EVENT", mergedTimeRange, attendees);
         listIterator.previous();
-
-        TimeRange eventTimeRange = eventToCheck.getWhen();
-        TimeRange nextEventTimeRange = nextEvent.getWhen();
-        
-        if (eventTimeRange.overlaps(nextEventTimeRange)) {
-          listIterator.remove();
-          TimeRange mergedTimeRange = TimeRange.fromStartEnd(eventTimeRange.start(), Math.max(eventTimeRange.end(), nextEventTimeRange.end()), false);
-          Event mergedEvent = new Event("MERGED_EVENT", mergedTimeRange, attendees);
-          listIterator.previous();
-          listIterator.set(mergedEvent);
-        }
+        listIterator.set(mergedEvent);
       }
     }
 
@@ -209,22 +208,21 @@ public final class FindMeetingQuery {
    */
   private ArrayList<TimeRange> availableTimesFromSortedNonOverlappingEvents (LinkedList<Event> sequentialEvents, MeetingRequest request) {
     ArrayList<TimeRange> availableTimes = new ArrayList<>(); 
-    ListIterator listIterator = sequentialEvents.listIterator();
 
-    while (listIterator.hasNext()) { // n
+    for (ListIterator<Event> listIterator = sequentialEvents.listIterator(); listIterator.hasNext();) { // n
       Event eventToCheck = (Event) listIterator.next();
-      if (listIterator.hasNext()) {
-        Event nextEvent = (Event) listIterator.next();
-        listIterator.previous();
-        
-        int endTimeEvent = eventToCheck.getWhen().end();
-        int startTimeNextEvent = nextEvent.getWhen().start();
-        
-        int duration = startTimeNextEvent - endTimeEvent;
-
-        if (duration >= request.getDuration()) {
-          availableTimes.add(TimeRange.fromStartDuration(endTimeEvent, duration));
-        }
+      if (!listIterator.hasNext()) {
+        break;
+      }
+      Event nextEvent = (Event) listIterator.next();
+      listIterator.previous();
+      
+      int endTimeEvent = eventToCheck.getWhen().end();
+      int startTimeNextEvent = nextEvent.getWhen().start();
+      
+      int duration = startTimeNextEvent - endTimeEvent;
+      if (duration >= request.getDuration()) {
+        availableTimes.add(TimeRange.fromStartDuration(endTimeEvent, duration));
       }
     }
       
