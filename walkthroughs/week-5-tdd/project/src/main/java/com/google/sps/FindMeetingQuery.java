@@ -88,7 +88,9 @@ public final class FindMeetingQuery {
   }
    
   /*
-   * Function to merge time ranges that intersect between two lists of time ranges
+   * Function to merge time ranges that intersect between two lists of time ranges. Does this
+   * by iterating through each one of the optional and mandatory but never goes to a previously 
+   * visited index in neither list.
    * 
    * Runtime: O(n + m) where 'n' is the length of optional and 'm' is the length of mandatory
    * 
