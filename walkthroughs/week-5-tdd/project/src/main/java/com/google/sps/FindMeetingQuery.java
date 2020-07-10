@@ -83,7 +83,7 @@ public final class FindMeetingQuery {
       return availableWithOptional;
     }
     
-    ArrayList<TimeRange> finalTimeRanges = mergeTimeRangesThatIntersect(availableWithOptional, available);
+    ArrayList<TimeRange> finalTimeRanges = mergeTimeRangesThatIntersect(availableWithOptional, available, request);
     return finalTimeRanges;
   }
    
@@ -100,7 +100,7 @@ public final class FindMeetingQuery {
    * return   A list of time ranges where all ranges are within both input lists
    * 
   */
-  private ArrayList<TimeRange> mergeTimeRangesThatIntersect(ArrayList<TimeRange> optional, ArrayList<TimeRange> mandatory) {
+  private ArrayList<TimeRange> mergeTimeRangesThatIntersect(ArrayList<TimeRange> optional, ArrayList<TimeRange> mandatory, MeetingRequest request) {
     ArrayList<TimeRange> finalTimeRanges = new ArrayList<>();
     int mandatoryIndex = 0;
 
@@ -113,16 +113,23 @@ public final class FindMeetingQuery {
         
         int mandatoryStart = possibleIntersection.start();
         int mandatoryEnd = possibleIntersection.end();
-
-        if (mandatoryStart > start) {
+        
+        if (end < mandatoryStart) {
           break;
         }
 
-        if (mandatoryEnd >= end) {
-          finalTimeRanges.add(optionalTimeRange);
-          break;  
-        } else {
+        int mergeStart = Math.max(start, mandatoryStart);
+        int mergeEnd = Math.min(end, mandatoryEnd);
+        int mergedDuration = mergeEnd - mergeStart;
+        
+        if (start <= mandatoryEnd && mergedDuration >= request.getDuration()) {
+          finalTimeRanges.add(TimeRange.fromStartDuration(mergeStart, mergedDuration));
+        }
+
+        if (mandatoryEnd <= end) {
           ++mandatoryIndex;
+        } else {
+          break;
         }
       }
     }
