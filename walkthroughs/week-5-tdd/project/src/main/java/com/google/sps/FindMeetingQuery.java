@@ -212,11 +212,11 @@ public final class FindMeetingQuery {
     ArrayList<TimeRange> availableTimes = new ArrayList<>(); 
 
     for (ListIterator<Event> listIterator = sequentialEvents.listIterator(); listIterator.hasNext();) { // n
-      Event eventToCheck = (Event) listIterator.next();
+      Event eventToCheck = listIterator.next();
       if (!listIterator.hasNext()) {
         break;
       }
-      Event nextEvent = (Event) listIterator.next();
+      Event nextEvent = listIterator.next();
       listIterator.previous();
       
       int endTimeEvent = eventToCheck.getWhen().end();

@@ -397,5 +397,29 @@ public final class FindMeetingQueryTest {
 
     Assert.assertEquals(expected, actual);
   }
-}
 
+  @Test
+  public void multipleMandatoryTimeRangesWithinOneOptional() {
+    // Optional attendees have a time range of one whole day while mandatory
+    // time range is split into two
+    //
+    // Events  :   |----A---|
+    // Day     : |---------------------|
+    // Options : |-|        |----------|
+
+    Collection<Event> events = Arrays.asList(
+      new Event("Event 1", TimeRange.fromStartDuration(TIME_0800AM, DURATION_1_HOUR), Arrays.asList(PERSON_A))
+    );
+
+    MeetingRequest request = new MeetingRequest(Arrays.asList(PERSON_A), DURATION_1_HOUR);
+    request.addOptionalAttendee(PERSON_B);
+
+    Collection<TimeRange> actual = query.query(events, request);
+    Collection<TimeRange> expected = Arrays.asList(
+      TimeRange.fromStartEnd(TimeRange.START_OF_DAY, TIME_0800AM, false),
+      TimeRange.fromStartEnd(TIME_0900AM, TimeRange.END_OF_DAY, true)
+    );
+
+    Assert.assertEquals(expected, actual);
+  }
+}
