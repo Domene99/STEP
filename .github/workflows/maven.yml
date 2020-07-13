@@ -21,4 +21,4 @@ jobs:
       with:
         java-version: 1.8
     - name: Test with Maven
-      run: mvn test --file https://github.com/Domene99/STEP/tree/master/walkthroughs/week-5-tdd/project/pom.xml
+      run: mvn test --file walkthroughs/week-5-tdd/project/pom.xml
